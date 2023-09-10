@@ -1,0 +1,501 @@
+---
+
+Rules:
+  Pawns:
+    - name: Cientista
+      name_EN: Scientist
+      class: Scientist
+      color: O_WHITE
+      single_player_out: False
+
+    - name: Médico
+      name_EN: Doctor
+      class: Doctor
+      color: ORANGE
+      single_player_out: False
+
+    - name: Pesquisador
+      name_EN: Researcher
+      class: Researcher
+      color: BROWN      
+      single_player_out: True
+
+    - name: Agente de Viagens
+      name_EN: Travel Agent
+      class: Travel_agent
+      color: PINK
+      single_player_out: False
+
+    - name: Especialista em Operações
+      name_EN: Operation Specialist
+      class: Operation_spec
+      color: L_GREEN
+      single_player_out: False
+
+    - name: Especialista em Quarentena
+      name_EN: Quarantine Specialist
+      class: Quarantine_spec
+      color: D_GREEN
+      single_player_out: False
+
+    - name: Especialista em Planos de Contingência
+      name_EN: Contingency Plans Specialist
+      class: Contingency_spec
+      color: E_BLUE
+      single_player_out: False
+
+  Research_centers:
+    Max_quantity: 6
+    Available: 5
+    Centers: 
+    - AT
+
+  Diseases:
+    Quantity: 4
+    Status:
+    - Active
+    - Cured
+    - Eradicated
+
+    Types:
+      - code: BLUE
+        quantity: 24
+        status: Active
+      - code: RED
+        quantity: 24
+        status: Active
+      - code: BLACK
+        quantity: 24
+        status: Active
+      - code: YELLOW
+        quantity: 24
+        status: Active
+
+  Round: 
+    ActivePlayer: ''   
+    Phases:
+      - Actions
+      - CityCards
+      - Infection
+    Actions: 
+      Function: perform_action
+      Moves: 4
+      Types:
+      - name: Tratar Doença  
+        code: TREAT
+        Function: treat_disease
+        button_position: 0
+      - name: Construir Centro de Pesquisa
+        code: BUILD
+        Function: build_center
+        button_position: 1
+      - name: Compartilhar Conhecimento
+        code: SHARE
+        Function: share_cards
+        button_position: 2
+      - name: Descobrir Cura de Doença
+        code: EUREKA
+        Function: discover_cure
+        button_position: 3
+      - name: Mover-se para Cidade Vizinha
+        code: GO_TO_NEIGHBOR
+        Function: go_to_neighbor
+      - name: Mover-se para Centro de Pesquisa
+        code: GO_TO_CENTER
+        Function: go_to_center
+      - name: Mover-se para Determinada Cidade usando Carta
+        code: GO_TO_CARD
+        Function: go_to_card
+      - name: Mover-se para Qualquer Cidade usando Carta
+        code: GO_FROM_CARD
+        Function: go_from_card
+        
+  CityCards:
+    Function: handle_city_cards
+    Rate: 2         
+    Deck: []
+    Discard: []      
+    Out: []
+    Initial_draw:
+      1: 3
+      2: 4
+      3: 3
+      4: 2
+    Special_Cards:
+    - name: Noite Tranquila
+      Code: SKIP
+      description: Pular a próxima fase de infecção. Use a qualquer momento.
+      Function: skip_infection
+    - name: Novo Centro de Pesquisa
+      Code: BUILD
+      description: Construa um novo Centro de Pesquisa, até o limite do jogo. Use a qualquer momento.
+      Function: build_center_card
+    - name: Deslocamento
+      Code: MOVE
+      description: Mova-se para qualquer cidade usando carta. Use a qualquer momento.
+      Function: move_card
+    - name: Previsão
+      Code: PEEK
+      description: Veja as próximas seis cartas do baralho de infecção e reordene-as. Use a qualquer momento.
+      function: reorder_infection_cards
+    - name: Quarentena
+      Code: DROP
+      description: Retire uma carta da pilha de descarte de infecção. Use a qualquer momento.
+      Function: remove_infection_card
+      
+  Infection: 
+    Function: handle_infection
+    Rate_list: [2, 2, 2, 3, 3, 4, 4]
+    Rate: 2
+    Index: 0
+    Spread: 1      
+    Deck: []
+    Discard: []      
+    Out: []
+
+  Outbreak:
+    Function: handle_outbreak
+    Status: 0
+    Limit: 8
+
+  Epidemic_card:
+    Function: deal_epidemic
+    Code: EPIDEMIC    
+    Type:
+      Easy: 4
+      Normal: 5
+      Hard: 6
+    Actions:
+      - Phase: 1. Aumentar índice de infecção
+        Function: up_infection_index
+      - Phase: 2. Pegar última carta da pilha de infecção
+        Function: draw_last_card_deck
+        Spread: 3
+      - Phase: 3. Embaralhar pilha de descarte de infecção e juntar ao deck
+        Function: shuffle_infection_discard
+
+Colors:
+  WHITE: 0xFFFFFF
+  # Cities
+  YELLOW: 0xECA72C  
+  BLUE: 0x084C61
+  RED: 0xDB3A34 
+  BLACK: 0x323031
+  # Board
+  LINECOLOR: 0x8D99AE
+  BACKGROUND: 0x000000
+  FONTCOLOR: 0xFFFFFFFF
+  # Bootstrap interfaces
+  PRIMARY: 0x007BFF
+  HOVER: 0x0063CC
+  SUCCESS: 0x28A745
+  SECONDARY: 0x6C757D
+  # Pawns:
+  E_BLUE: 0x6EFAFB
+  O_WHITE: 0xFFF4E4
+  PINK: 0xFF57BB
+  ORANGE: 0xE86252
+  L_GREEN: 0x51CB20
+  D_GREEN: 0x054A29
+  BROWN: 0x432818
+
+
+Buttons:
+- name: Tratar Doença  
+  code: TREAT
+  rectValue: [40, 500, 180, 50]
+- name: Construir Centro
+  code: BUILD
+  rectValue: [40, 570, 180, 50]
+- name: Compartilhar 
+  subname: Conhecimento
+  code: SHARE
+  rectValue: [40, 640, 180, 50]
+- name: Descobrir Cura
+  code: EUREKA
+  rectValue: [40, 710, 180, 50]
+
+Cards:
+  title: 
+    name: Minhas cartas
+    pos: [920, 490, 80, 20]
+    background: BACKGROUND
+    fontcolor: FONTCOLOR  
+  background: SECONDARY
+  fontcolor: FONTCOLOR
+  cards:
+  - code: 1
+    free: True
+    card_code: ''
+    rectValue: [910, 510, 180, 30]
+  - code: 2
+    free: True
+    card_code: ''
+    rectValue: [910, 550, 180, 30]
+  - code: 3
+    free: True
+    card_code: ''
+    rectValue: [910, 590, 180, 30]
+  - code: 4
+    free: True
+    card_code: ''
+    rectValue: [910, 630, 180, 30]
+  - code: 5
+    free: True
+    card_code: ''
+    rectValue: [910, 670, 180, 30]
+  - code: 6
+    free: True
+    card_code: ''
+    rectValue: [910, 710, 180, 30]
+  - code: 7
+    free: True
+    card_code: ''
+    rectValue: [910, 750, 180, 30]
+  - code: EXTRA
+    free: False
+    card_code: ''
+    rectValue: [1120, 730, 180, 30]
+
+Cities:
+- code: SF
+  name: San Francisco  
+  color: BLUE
+  board: [40, 110]
+  connections: ['LA', 'CH', 'TO', 'ML']
+- code: CH
+  name: Chicago
+  color: BLUE
+  board: [125, 85]
+  connections: ['SF', 'LA', 'MX', 'AT', 'MO']
+- code: MO
+  name: Montreal
+  color: BLUE
+  board: [200, 85]  
+  connections: ['CH', 'WA', 'NY']
+- code: NY
+  name: New York
+  color: BLUE
+  board: [255, 95]
+  connections: ['MO', 'WA', 'LO', 'MD']
+- code: LA
+  name: Los Angeles
+  color: YELLOW
+  board: [45, 185]
+  connections: ['SF', 'CH', 'MX', 'SY']
+- code: MX
+  name: Mexico City
+  color: YELLOW
+  board: [115, 210]
+  connections: ['LA', 'CH', 'MI', 'BO', 'LI']
+- code: AT
+  name: Atlanta
+  board: [155, 140]
+  color: BLUE
+  connections: ['MI', 'CH', 'WA']
+- code: WA
+  name: Washington
+  board: [230, 140]
+  color: BLUE
+  connections: ['MO', 'NY', 'AT', 'MI']
+- code: MD
+  name: Madrid
+  board: [380, 120]
+  color: BLUE
+  connections: ['NY', 'LO', 'PA', 'SP', 'AG']
+- code: LO
+  name: London
+  board: [395, 50]
+  color: BLUE
+  connections: ['MD', 'PA', 'NY', 'ES']
+- code: ES
+  name: Essen
+  board: [470, 40]
+  color: BLUE
+  connections: ['LO', 'PA', 'ST', 'MN']
+- code: ST
+  name: St.Petersburg
+  board: [550, 25]
+  color: BLUE
+  connections: ['ES', 'IS', 'MK']
+- code: PA
+  name: Paris
+  board: [450, 90]
+  color: BLUE
+  connections: ['MD', 'LO', 'ES', 'AG', 'MN']
+- code: MN
+  name: Milan
+  board: [500, 75]
+  color: BLUE
+  connections: ['PA', 'ES', 'IS']
+- code: MI
+  name: Miami
+  board: [200, 200]
+  color: YELLOW
+  connections: ['MX', 'WA', 'BO', 'AT']
+- code: BO
+  name: Bogota
+  board: [190, 275]
+  color: YELLOW
+  connections: ['MI', 'MX', 'LI', 'BA', 'SP']
+- code: LI
+  name: Lima  
+  board: [160, 350]
+  color: YELLOW
+  connections: ['BO', 'MX', 'SA']
+- code: SA
+  name: Santiago
+  board: [170, 435]
+  color: YELLOW
+  connections: ['LI']
+- code: SP
+  name: Sao Paulo
+  board: [290, 370]
+  color: YELLOW
+  connections: ['BA', 'BO', 'LG', 'MD']
+- code: BA
+  name: Buenos Aires
+  board: [250, 420]
+  color: YELLOW
+  connections: ['SP', 'BO']
+- code: LG
+  name: Lagos
+  board: [435, 260]
+  color: YELLOW
+  connections: ['SP', 'KH', 'KI']
+- code: KH
+  name: Khartoum
+  board: [535, 250]
+  color: YELLOW
+  connections: ['LG', 'KI', 'JO', 'CA']
+- code: KI
+  name: Kinshasa
+  board: [480, 315]
+  color: YELLOW
+  connections: ['KH', 'JO', 'LG']
+- code: JO
+  name: Johannesburg
+  board: [525, 390]
+  color: YELLOW
+  connections: ['KI', 'KH']
+- code: AG
+  name: Algiers
+  board: [460, 160]
+  color: BLACK
+  connections: ['CA', 'MD', 'PA', 'IS']
+- code: IS
+  name: Istambul
+  board: [530, 115]
+  color: BLACK
+  connections: ['AG', 'MN', 'CA', 'ST', 'MK', 'BG']
+- code: CA
+  name: Cairo 
+  board: [520, 180]
+  color: BLACK
+  connections: ['AG', 'IS', 'RY', 'BG']
+- code: MK
+  name: Moscow
+  board: [590, 75]
+  color: BLACK
+  connections: ['ST', 'IS', 'TE']
+- code: BG
+  name: Baghdad 
+  board: [580, 155]
+  connections: ['IS', 'CA', 'RY', 'TE', 'KA']
+  color: BLACK
+- code: RY
+  name: Riyadh
+  board: [590, 220]
+  color: BLACK
+  connections: ['CA', 'BG', 'KA']
+- code: TE
+  name: Tehran
+  board: [640, 110]
+  color: BLACK
+  connections: ['MK', 'BG', 'KA', 'DE']
+- code: KA
+  name: Karachi
+  board: [650, 180]
+  color: BLACK
+  connections: ['RY', 'BG', 'DE', 'MU']
+- code: MU
+  name: Mumbai
+  board: [660, 235]
+  color: BLACK
+  connections: ['KA', 'DE', 'CN']
+- code: DE
+  name: Delhi
+  board: [705, 160]
+  color: BLACK
+  connections: ['TE', 'CN', 'KA', 'KO', 'MU']
+- code: CN
+  name: Chennai
+  board: [715, 270]
+  color: BLACK
+  connections: ['MU', 'KO', 'DE', 'BK', 'JA']
+- code: KO
+  name: Kolkata
+  board: [755, 175]
+  color: BLACK
+  connections: ['DE', 'CN', 'BK', 'HK']
+- code: BE
+  name: Beijing
+  board: [800, 90]
+  color: RED
+  connections: ['SE', 'SH']
+- code: SE
+  name: Seoul
+  board: [860, 90]
+  color: RED
+  connections: ['BE', 'SH', 'TO']
+- code: TO
+  name: Tokyo
+  board: [915, 120]
+  color: RED
+  connections: ['SE', 'SH', 'OS', 'SF']
+- code: SH
+  name: Shanghai
+  board: [800, 145]
+  color: RED
+  connections: ['BE', 'SE', 'TO', 'HK', 'TP']
+- code: HK
+  name: Hong Kong
+  board: [810, 205]
+  color: RED
+  connections: ['TP', 'SH', 'KO', 'BK', 'HC', 'ML']
+- code: TP
+  name: Taipei
+  board: [870, 195]
+  color: RED
+  connections: ['HK', 'SH', 'ML', 'OS']
+- code: OS
+  name: Osaka
+  board: [920, 175]
+  color: RED
+  connections: ['TP', 'TO']
+- code: BK
+  name: Bangkok
+  board: [770, 240]
+  color: RED
+  connections: ['CN', 'JA', 'HC', 'HK', 'KO']
+- code: JA
+  name: Jakarta
+  board: [770, 335]
+  color: RED
+  connections: ['BK', 'CN', 'HC', 'SY']
+- code: HC
+  name: Ho Chi Minh City
+  board: [810, 290]
+  color: RED
+  connections: ['ML', 'BK', 'HK', 'JA']
+- code: ML
+  name: Manila
+  board: [885, 290]
+  color: RED
+  connections: ['HC', 'HK', 'TP', 'SF']
+- code: SY
+  name: Sydney
+  board: [930, 440]
+  color: RED
+  connections: ['JA', 'ML', 'LA']
+...
