@@ -61,7 +61,7 @@ def draw_cities(screen, colors, cities, fonte, selected_city=''):
     for c in cities:
         pos = c['board']
         color = colors[c['color']]            
-        pygame.draw.circle(screen, color ,pos, 20)
+        pygame.draw.circle(screen, color, pos, 20)
 
         if c['code'] == selected_city:
             pygame.draw.circle(screen, colors['SUCCESS'] ,pos, 20, width=3)
@@ -72,6 +72,52 @@ def draw_cities(screen, colors, cities, fonte, selected_city=''):
             textRect = text.get_rect()
             textRect.center = (pos[0], pos[1]+25)
             screen.blit(text, textRect)
+
+def define_pawns(game, colors, citypos):
+    pawns = dict()
+    size = 16
+    n = 0
+    for p in game.pawns:
+        pawns[p] = dict()        
+        code = p.position
+        pawns[p]['x'] = citypos[code][0] - 18 + 20 * (n // 2) 
+        pawns[p]['y'] = citypos[code][1] - 18 + 20 * (n % 2) 
+        pawns[p]['color'] = colors[p.color]
+        pawns[p]['color_border'] = colors['WHITE']
+        pawns[p]['color_select'] = colors['TURN_YELLOW']
+        pawns[p]['rect'] = pygame.rect.Rect(pawns[p]['x'], pawns[p]['y'], size, size)
+        n += 1
+    return pawns        
+        
+
+def draw_pawns(screen, pawns, game):
+    for p in pawns:
+        pygame.draw.rect(screen, pawns[p]['color'], pawns[p]['rect'])
+        pygame.draw.rect(screen, pawns[p]['color_border'], pawns[p]['rect'], width=1)   
+        # TODO: desenhar as cartas em algum lugar do tabuleiro (tipo, embaixo)
+
+def draw_centers(screen, game, colors, citypos):
+    for code in citypos:
+        rc = game.board[code].research_center
+        if rc:            
+            x = citypos[code][0]
+            y = citypos[code][1]
+            pygame.draw.rect(screen, colors['WHITE'], (x - 30, y-20, 8, 12))            
+    pass
+
+def draw_diseases(screen, game, colors, citypos):
+    for code in citypos:
+        dis = game.board[code].disease
+        n = 0  # n = diseases_in_city
+        for dc in game.board[code].disease: 
+            for i in range(dis[dc]):                
+                color = colors[dc]
+                x = citypos[code][0]
+                y = citypos[code][1]
+                pygame.draw.rect(screen, color, (x + 22, y-20 + n*10, 8, 8))
+                pygame.draw.rect(screen, colors['WHITE'], (x + 22, y-20 + n*10, 8, 8), width=1)
+                n += 1
+                
 
 def selectable_buttons(these_buttons):
     for b in these_buttons:        
@@ -114,13 +160,16 @@ def draw_cards(screen, colors, cards, fonte):
 
 
 
-
+from engine import Game
 
 def main():
-    running = True
     pygame.init()
+
+    game = Game(num_players=4, level='Normal')
+    running = True
+    
     cities, citypos, colors, buttons, cards = get_config()
-    FPS = 30
+    FPS = 5
     DIMENSIONS = (1600, 800)
     CAPTION = "Boardgame"
     screen = pygame.display.set_mode(DIMENSIONS)
@@ -129,6 +178,8 @@ def main():
     fonte = pygame.font.Font('freesansbold.ttf', 10)
     fonte_maior = pygame.font.Font('freesansbold.ttf', 14)
     selected = ''
+    
+    pawns = define_pawns(game, colors, citypos)
 
     buttons = selectable_buttons(buttons)
     cards['cards'] = selectable_buttons(cards['cards'])
@@ -158,6 +209,10 @@ def main():
 
         draw_lines(screen, colors, cities, citypos)
         draw_cities(screen, colors, cities, fonte, selected)
+
+        draw_pawns(screen, pawns, game)
+        draw_centers(screen, game, colors, citypos)
+        draw_diseases(screen, game, colors, citypos)
 
         draw_buttons(screen, colors, buttons, fonte_maior)    
         draw_cards(screen, colors, cards, fonte_maior)

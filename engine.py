@@ -55,7 +55,7 @@ class Game:
         pawnlist = [x['class'] for x in pawnrules]        
         for i in range(playercount):
             pawn_type = random.choice(pawnlist)
-            pawn_object = PawnClass(pawn_type, self)
+            pawn_object = PawnClass(pawn_type, pawnrules, self)
             self.pawns.append(pawn_object)
             pawnlist.remove(pawn_type)
 
@@ -190,12 +190,16 @@ class CityData:
     
 
 class PawnClass:
-    def __init__(self, pawntype, this_game):
+    def __init__(self, pawntype, pawnrules, this_game):
+        for p in pawnrules:
+            if p['class'] == pawntype:
+                self.color = p['color']        
         self.gamedata = this_game        
         self.type = pawntype
         self.cards = list()
         self.position = 'AT'
         self.moves = 0
+
 
 
     def newturn(self):
