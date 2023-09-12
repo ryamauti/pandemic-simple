@@ -83,18 +83,28 @@ def define_pawns(game, colors, citypos):
         pawns[p]['x'] = citypos[code][0] - 18 + 20 * (n // 2) 
         pawns[p]['y'] = citypos[code][1] - 18 + 20 * (n % 2) 
         pawns[p]['color'] = colors[p.color]
-        pawns[p]['color_border'] = colors['WHITE']
+        pawns[p]['color_border'] = colors['SECONDARY']
         pawns[p]['color_select'] = colors['TURN_YELLOW']
         pawns[p]['rect'] = pygame.rect.Rect(pawns[p]['x'], pawns[p]['y'], size, size)
+        pawns[p]['object'] = p
         n += 1
-    return pawns        
+    return pawns
         
 
-def draw_pawns(screen, pawns, game):
+def draw_pawns(screen, pawns, game):    
+    # TODO: desenhar as cartas em algum lugar do tabuleiro (tipo, embaixo)
+    active = False
+    rect = None
     for p in pawns:
         pygame.draw.rect(screen, pawns[p]['color'], pawns[p]['rect'])
-        pygame.draw.rect(screen, pawns[p]['color_border'], pawns[p]['rect'], width=1)   
-        # TODO: desenhar as cartas em algum lugar do tabuleiro (tipo, embaixo)
+        if pawns[p]['object'].active == True:
+            pygame.draw.rect(screen, pawns[p]['color_select'], pawns[p]['rect'], width=1) 
+            rect = pawns[p]['rect']
+            active = True           
+        else:
+            pygame.draw.rect(screen, pawns[p]['color_border'], pawns[p]['rect'], width=1)            
+    return active, rect
+        
 
 def draw_centers(screen, game, colors, citypos):
     for code in citypos:
@@ -102,10 +112,11 @@ def draw_centers(screen, game, colors, citypos):
         if rc:            
             x = citypos[code][0]
             y = citypos[code][1]
-            pygame.draw.rect(screen, colors['WHITE'], (x - 30, y-20, 8, 12))            
+            pygame.draw.rect(screen, colors['WHITE'], (x - 38, y-20, 16, 28))            
     pass
 
 def draw_diseases(screen, game, colors, citypos):
+    size = 12
     for code in citypos:
         dis = game.board[code].disease
         n = 0  # n = diseases_in_city
@@ -114,8 +125,10 @@ def draw_diseases(screen, game, colors, citypos):
                 color = colors[dc]
                 x = citypos[code][0]
                 y = citypos[code][1]
-                pygame.draw.rect(screen, color, (x + 22, y-20 + n*10, 8, 8))
-                pygame.draw.rect(screen, colors['WHITE'], (x + 22, y-20 + n*10, 8, 8), width=1)
+                xn = x+22 + (n//3)*(size+3)
+                yn = y-22 + (n%3)*(size+3)
+                pygame.draw.rect(screen, color, (xn, yn, size, size))
+                pygame.draw.rect(screen, colors['WHITE'], (xn, yn, size, size), width=1)
                 n += 1
                 
 
@@ -169,7 +182,7 @@ def main():
     running = True
     
     cities, citypos, colors, buttons, cards = get_config()
-    FPS = 5
+    FPS = 30
     DIMENSIONS = (1600, 800)
     CAPTION = "Boardgame"
     screen = pygame.display.set_mode(DIMENSIONS)
@@ -177,9 +190,12 @@ def main():
     pygame.display.set_caption(CAPTION)
     fonte = pygame.font.Font('freesansbold.ttf', 10)
     fonte_maior = pygame.font.Font('freesansbold.ttf', 14)
-    selected = ''
+    selected = ''    
     
     pawns = define_pawns(game, colors, citypos)
+    pawn_turn = False
+    pawn_rect = None    
+    pawn_drag = False
 
     buttons = selectable_buttons(buttons)
     cards['cards'] = selectable_buttons(cards['cards'])
@@ -195,9 +211,47 @@ def main():
                 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                                      
+                    if pawn_turn:
+                        if pawn_rect.collidepoint(event.pos):
+                            pawn_drag = True
+                            mouse_x, mouse_y = event.pos
+                            offset_x = pawn_rect.x - mouse_x
+                            offset_y = pawn_rect.y - mouse_y
+                            oldpos_x = pawn_rect.x
+                            oldpos_y = pawn_rect.y
                     for r in clickables:
                         if r['rect'].collidepoint(event.pos):
                             selected = r['code']
+
+            elif event.type == pygame.MOUSEMOTION:
+                if pawn_drag:
+                    mouse_x, mouse_y = event.pos
+                    pawn_rect.x = mouse_x + offset_x
+                    pawn_rect.y = mouse_y + offset_y
+                    selected = ''
+                    for r in clickables:
+                        if r['rect'].collidepoint(event.pos):
+                            selected = r['code']
+
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    if pawn_drag:            
+                        pawn_drag = False
+                        move_fail = True 
+                        for r in clickables:
+                            if r['rect'].collidepoint(event.pos):
+                                success = game.currentplayer.go_to_neighbor(r['code'])
+                                move_fail = not success
+                        if move_fail:
+                            pawn_rect.x = oldpos_x
+                            pawn_rect.y = oldpos_y
+                        if success:
+                            game.currentplayer.moves -= 1
+                            print(game.currentplayer.moves)
+
+
             """
             elif event.type == pygame.MOUSEMOTION:
                 if caixa.collidepoint(event.pos):
@@ -210,7 +264,7 @@ def main():
         draw_lines(screen, colors, cities, citypos)
         draw_cities(screen, colors, cities, fonte, selected)
 
-        draw_pawns(screen, pawns, game)
+        pawn_turn, pawn_rect = draw_pawns(screen, pawns, game)
         draw_centers(screen, game, colors, citypos)
         draw_diseases(screen, game, colors, citypos)
 

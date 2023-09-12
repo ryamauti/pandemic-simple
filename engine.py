@@ -31,7 +31,8 @@ class Game:
         self.infection = self.rules['Infection']
         self.outbreak = self.rules['Outbreak']
         self.epidemic = self.rules['Epidemic_card']
-        self.setup_functions()
+        self.setup_functions()        
+        
 
 
     def setup_functions(self):
@@ -39,6 +40,11 @@ class Game:
         self.define_board()
         self.create_infection_deck()
         self.create_game_deck()
+        self.who_plays = random.randint(0, self.num_players-1)
+        display(f'== Game starts now with {self.num_players} players ==')
+        self.currentplayer = self.pawns[self.who_plays]  
+        self.currentplayer.newturn()
+        
 
 
     def gameover(self):
@@ -131,6 +137,10 @@ class Game:
     def next_turn(self):
         for c in self.board:
             self.board[c].had_outbreak = False
+        self.who_plays = self.who_plays + 1
+        self.who_plays = self.who_plays % self.num_players
+        self.currentplayer = self.pawns[self.who_plays]
+        
 
     
     def do_round(self):
@@ -193,17 +203,23 @@ class PawnClass:
     def __init__(self, pawntype, pawnrules, this_game):
         for p in pawnrules:
             if p['class'] == pawntype:
-                self.color = p['color']        
+                self.color = p['color'] 
+                self.name = p['name']        
         self.gamedata = this_game        
         self.type = pawntype
         self.cards = list()
         self.position = 'AT'
         self.moves = 0
-
+        self.active = False
 
 
     def newturn(self):
+        display(f'==  {self.name} {self.color} turn starts now ==')
         self.moves = 4
+        self.active = True
+
+    def endturn(self):        
+        self.active = False
 
 
     def citydata(self):
