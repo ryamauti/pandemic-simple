@@ -17,7 +17,7 @@ def get_config():
         citypos[c['code']] = c['board']    
         # ajustar dimensoes do board
         c['board'][0] = 60 + c['board'][0] * 1.5 
-        c['board'][1] = 20 + c['board'][1] * 1.6
+        c['board'][1] = 20 + c['board'][1] * 1.6    
 
     # Left Buttons
     buttons = data['Buttons']
@@ -72,6 +72,7 @@ def draw_cities(screen, colors, cities, fonte, selected_city=''):
             textRect = text.get_rect()
             textRect.center = (pos[0], pos[1]+25)
             screen.blit(text, textRect)
+
 
 def define_pawns(game, colors, citypos):
     pawns = dict()
@@ -132,6 +133,7 @@ def draw_diseases(screen, game, colors, citypos):
                 n += 1
                 
 
+
 def selectable_buttons(these_buttons):
     for b in these_buttons:        
         b['box'] = pygame.rect.Rect(b['rectValue'])
@@ -156,15 +158,33 @@ def draw_buttons(screen, colors, buttons, fonte):
         screen.blit(text, textRect)
 
 
-def draw_cards(screen, colors, cards, fonte):    
-    for b in cards['cards']:
-        color = colors['SECONDARY']
-        if b['free'] == True:
-            pygame.draw.rect(screen, color, b['box'], 1)
-        if b['free'] == False:
-            pass
-        if b['code'] == 'EXTRA':
-            pygame.draw.rect(screen, color, b['box'])
+def draw_cards_title(screen, colors, dictcards, fonte):        
+    ink_c = dictcards['fontcolor']
+    text = fonte.render(dictcards['title']['name'], True, colors[ink_c])
+    textRect = text.get_rect()
+    rv = dictcards['title']['pos']
+    textRect.center = (rv[0] + rv[2]/2, rv[1] + rv[3]/2)   
+    screen.blit(text, textRect)
+    
+
+
+def draw_cards(screen, colors, dictcards, fonte, cards, cityname):    
+    bg_c = dictcards['background']
+    ink_c = dictcards['fontcolor']
+
+    # cartas   
+    bgcolor = colors[bg_c]
+    for i in range(8):
+        b = dictcards['cards'][i]        
+        if i < len(cards):
+            pygame.draw.rect(screen, bgcolor, b['box'])
+            text = fonte.render(cityname[cards[i]], True, colors[ink_c])
+            textRect = text.get_rect()
+            rv = b['rectValue']
+            textRect.center = (rv[0] + rv[2]/2, rv[1] + rv[3]/2)   
+            screen.blit(text, textRect)
+        else:
+            pygame.draw.rect(screen, bgcolor, b['box'], 1)
     
     # TODO: colocar o texto do título das cartas
     # TODO: colocar o texto das cartas
@@ -189,7 +209,7 @@ def main():
     clock = pygame.time.Clock()
     pygame.display.set_caption(CAPTION)
     fonte = pygame.font.Font('freesansbold.ttf', 10)
-    fonte_maior = pygame.font.Font('freesansbold.ttf', 14)
+    fonte_maior = pygame.font.Font('freesansbold.ttf', 16)
     selected = ''    
     
     pawns = define_pawns(game, colors, citypos)
@@ -199,6 +219,11 @@ def main():
 
     buttons = selectable_buttons(buttons)
     cards['cards'] = selectable_buttons(cards['cards'])
+
+    cityname = dict()
+    for c in cities:
+        # criar citypos
+        cityname[c['code']] = c['name']
 
     while running:
         # black
@@ -211,6 +236,7 @@ def main():
                 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
+                    success = False
                                       
                     if pawn_turn:
                         if pawn_rect.collidepoint(event.pos):
@@ -220,9 +246,17 @@ def main():
                             offset_y = pawn_rect.y - mouse_y
                             oldpos_x = pawn_rect.x
                             oldpos_y = pawn_rect.y
+
                     for r in clickables:
                         if r['rect'].collidepoint(event.pos):
                             selected = r['code']
+
+                    for b in buttons:
+                        if b['box'].collidepoint(event.pos):
+                            if b['code'] == 'TREAT':
+                                game.currentplayer.treat_disease()
+                            if b['code'] == 'BUILD':
+                                game.currentplayer.build_center()
 
             elif event.type == pygame.MOUSEMOTION:
                 if pawn_drag:
@@ -269,7 +303,8 @@ def main():
         draw_diseases(screen, game, colors, citypos)
 
         draw_buttons(screen, colors, buttons, fonte_maior)    
-        draw_cards(screen, colors, cards, fonte_maior)
+        draw_cards_title(screen, colors, cards, fonte)
+        draw_cards(screen, colors, cards, fonte_maior, game.currentplayer.cards, cityname)
             
         pygame.display.flip()
         clock.tick(FPS)

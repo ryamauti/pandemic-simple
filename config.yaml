@@ -186,6 +186,7 @@ Colors:
   BACKGROUND: 0x000000
   FONTCOLOR: 0xFFFFFFFF
   TURN_YELLOW: 0xFFFF00
+  SECONDARY_FF: 0x6C757DFF
   # Bootstrap interfaces
   PRIMARY: 0x007BFF
   HOVER: 0x0063CC
@@ -219,9 +220,7 @@ Buttons:
 Cards:
   title: 
     name: Minhas cartas
-    pos: [920, 490, 80, 20]
-    background: BACKGROUND
-    fontcolor: FONTCOLOR  
+    pos: [910, 490, 180, 20]
   background: SECONDARY
   fontcolor: FONTCOLOR
   cards:
@@ -253,8 +252,8 @@ Cards:
     free: True
     card_code: ''
     rectValue: [910, 750, 180, 30]
-  - code: EXTRA
-    free: False
+  - code: 8
+    free: True
     card_code: ''
     rectValue: [1120, 730, 180, 30]
 
