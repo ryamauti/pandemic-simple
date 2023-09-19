@@ -227,34 +227,42 @@ Cards:
   - code: 1
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 510, 180, 30]
   - code: 2
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 550, 180, 30]
   - code: 3
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 590, 180, 30]
   - code: 4
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 630, 180, 30]
   - code: 5
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 670, 180, 30]
   - code: 6
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 710, 180, 30]
   - code: 7
     free: True
     card_code: ''
+    selected: False
     rectValue: [910, 750, 180, 30]
   - code: 8
     free: True
     card_code: ''
+    selected: False
     rectValue: [1120, 730, 180, 30]
 
 Cities:

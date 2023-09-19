@@ -177,7 +177,11 @@ def draw_cards(screen, colors, dictcards, fonte, cards, cityname):
     for i in range(8):
         b = dictcards['cards'][i]        
         if i < len(cards):
+            b['card_code'] = cards[i]
+            b['free'] = False
             pygame.draw.rect(screen, bgcolor, b['box'])
+            if b['selected'] == True:
+                pygame.draw.rect(screen, colors['WHITE'], b['box'], width=2)
             text = fonte.render(cityname[cards[i]], True, colors[ink_c])
             textRect = text.get_rect()
             rv = b['rectValue']
@@ -185,11 +189,11 @@ def draw_cards(screen, colors, dictcards, fonte, cards, cityname):
             screen.blit(text, textRect)
         else:
             pygame.draw.rect(screen, bgcolor, b['box'], 1)
-    
-    # TODO: colocar o texto do título das cartas
-    # TODO: colocar o texto das cartas
+            b['card_code'] = ''
+            b['free'] = True
+
     # TODO: implementar o código visual (as cartas serão coloridas ?  terão borda colorida ?  terão um quadrado que marca a cor ? )
-    # TODO: criar a regra para o local da 'carta nova' = 'EXTRA'
+
 
 
 
@@ -237,7 +241,7 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     success = False
-                                      
+              
                     if pawn_turn:
                         if pawn_rect.collidepoint(event.pos):
                             pawn_drag = True
@@ -246,6 +250,10 @@ def main():
                             offset_y = pawn_rect.y - mouse_y
                             oldpos_x = pawn_rect.x
                             oldpos_y = pawn_rect.y
+                        else:
+                            for c in cards['cards']:
+                                c['selected'] = False
+                            selected = ''
 
                     for r in clickables:
                         if r['rect'].collidepoint(event.pos):
@@ -257,6 +265,13 @@ def main():
                                 game.currentplayer.treat_disease()
                             if b['code'] == 'BUILD':
                                 game.currentplayer.build_center()
+
+                    for c in cards['cards']:
+                        if c['box'].collidepoint(event.pos) and c['free'] == False:
+                            c['selected'] = True
+                            selected = c['card_code']
+                        
+
 
             elif event.type == pygame.MOUSEMOTION:
                 if pawn_drag:
@@ -273,17 +288,26 @@ def main():
                 if event.button == 1:
                     if pawn_drag:            
                         pawn_drag = False
-                        move_fail = True 
+                        move_done = False
                         for r in clickables:
-                            if r['rect'].collidepoint(event.pos):
-                                success = game.currentplayer.go_to_neighbor(r['code'])
-                                move_fail = not success
-                        if move_fail:
-                            pawn_rect.x = oldpos_x
-                            pawn_rect.y = oldpos_y
-                        if success:
+                            if r['rect'].collidepoint(event.pos):                                
+                                if game.currentplayer.go_to_neighbor(r['code']):
+                                    move_done = True                                
+                                for c in cards['cards']:                            
+                                    if c['selected']:
+                                        if game.currentplayer.go_to_card(c['card_code'], r['code']):                                            
+                                            move_done = True
+                                        if game.currentplayer.go_from_card(c['card_code'], r['code']):
+                                            move_done = True
+                                if game.currentplayer.go_to_center(r['code']):
+                                    move_done = True
+                        
+                        if move_done:
                             game.currentplayer.moves -= 1
                             print(game.currentplayer.moves)
+                        else:                            
+                            pawn_rect.x = oldpos_x
+                            pawn_rect.y = oldpos_y
 
 
             """

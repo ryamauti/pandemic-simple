@@ -274,16 +274,40 @@ class PawnClass:
         else:
             display(f'== Não há ligação entre as cidades {self.position} e {destination} ==')
             return False
+        
+
+    def go_to_center(self, destination):
+        cd = self.citydata()
+        cd_dest = self.gamedata.board[destination]   
+        if cd.research_center == True and cd_dest.research_center == True:
+            self.position = destination
+            display(f'== Player {self.type} está agora em {self.position} ==')   
+            return True     
+        else:
+            display(f'== Não há ligação entre as cidades {self.position} e {destination} ==')
+            return False        
 
 
-    def go_to_center(self):
-        pass
+    def go_to_card(self, selected_card, destination):   
+        if selected_card == destination:
+            self.position = destination
+            self.cards.remove(selected_card)
+            display(f'== Player {self.type} está agora em {self.position} ==')   
+            return True     
+        else:
+            display(f'== Não há ligação entre as cidades {self.position} e {destination} ==')
+            return False
+        
 
-    def go_to_card(self):
-        pass
-
-    def go_from_card(self):
-        pass
+    def go_from_card(self, selected_card, destination):
+        if selected_card == self.position:
+            self.position = destination
+            self.cards.remove(selected_card)
+            display(f'== Player {self.type} está agora em {self.position} ==')   
+            return True     
+        else:
+            display(f'== Não há ligação entre as cidades {self.position} e {destination} ==')
+            return False
 
 
 
